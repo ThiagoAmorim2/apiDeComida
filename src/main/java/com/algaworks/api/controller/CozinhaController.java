@@ -18,23 +18,20 @@ import java.util.List;
 @RequestMapping(value = "/cozinhas", produces = MediaType.APPLICATION_JSON_VALUE)
 public class CozinhaController {
 
-    private final CozinhaRepository cozinhaRepository;
-
     private final CadastroCozinhaService cadastroCozinhaService;
 
-    public CozinhaController(CozinhaRepository cozinhaRepository, CadastroCozinhaService cadastroCozinhaService) {
-        this.cozinhaRepository = cozinhaRepository;
+    public CozinhaController(CadastroCozinhaService cadastroCozinhaService) {
         this.cadastroCozinhaService = cadastroCozinhaService;
     }
 
     @GetMapping
     public List<Cozinha> listar(){
-        return cozinhaRepository.listar();
+        return cadastroCozinhaService.listarCozinhas();
     }
 
     @GetMapping("/{cozinhaId}")
     public ResponseEntity<Cozinha> buscar(@PathVariable Long cozinhaId){
-       Cozinha cozinha = cozinhaRepository.buscar(cozinhaId);
+       Cozinha cozinha = cadastroCozinhaService.buscarCozinhas(cozinhaId);
        if(cozinha != null){
            return ResponseEntity.ok(cozinha);
        }
@@ -50,15 +47,21 @@ public class CozinhaController {
     @PutMapping("/{cozinhaId}")
     public ResponseEntity<Cozinha> atualizar(
             @PathVariable Long cozinhaId, @RequestBody Cozinha cozinha){
-        Cozinha cozinhaAtual = cozinhaRepository.buscar(cozinhaId);
+//        Cozinha cozinhaAtual = cadastroCozinhaService.buscarCozinhas(cozinhaId);
 
-        if(cozinhaAtual != null) {
-            BeanUtils.copyProperties(cozinha, cozinhaAtual, "id");
-
-            cadastroCozinhaService.salvar(cozinhaAtual);
-            return ResponseEntity.ok().body(cozinhaAtual);
+        try{
+            cadastroCozinhaService.atualizarCozinha(cozinhaId, cozinha);
+            return ResponseEntity.ok().body(cozinha);
+        }catch (EntidadeNaoEncontradaException e){
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+//        if(cozinhaAtual != null) {
+//            BeanUtils.copyProperties(cozinha, cozinhaAtual, "id");
+//
+//            cadastroCozinhaService.salvar(cozinhaAtual);
+//            return ResponseEntity.ok().body(cozinhaAtual);
+//        }
+//        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{cozinhaId}")
